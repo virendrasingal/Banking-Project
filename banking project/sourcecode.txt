@@ -1,0 +1,40 @@
+spark-shell --packages com.databricks:spark-csv_2.11:1.5.0
+
+user/dummy/Today/project.txt
+
+1.(i) val df = sqlContext.read.format("com.databricks.spark.csv").option("header","true").option("inferSchema","true").option("delimiter",";").load("/user/dummy/Today/project.txt")
+ (ii)df.show
+
+2. val totalcount=df.count.toDouble
+  val subscription_count = df.filter($"y" === "yes").count.toDouble
+
+3. df.select(max($"age"), avg($"age"), min($"age")).show
+
+4.df.registerTempTable("bankdetails")
+sqlContext.sql("select percentile(balance,0.5) as median ,avg(balance) as average from bankdetails").show
+
+
+5.df.groupBy("y").agg(avg($"age")).show
+
+6.df.groupBy("y").agg(count($"marital")).show
+
+7.df.groupBy("marital","y").count().sort($"count".desc).show
+
+8. df.groupBy("age","y").count().sort($"count".desc).show
+ df.groupBy("age","y").count().sort($"count".desc).count
+ import org.apache.spark.sql.functions.udf
+ def ageToCategory = udf((age:Int) => {
+           age match {
+           case t if t < 30 => "young"
+           case t if t > 65 => "old"
+           case _ => "mid"
+            }
+           }
+          )
+val newdf = df.withColumn("agecategory",ageToCategory(df("age")))
+newdf.groupBy("ageCategory","y").count().sort($"count".desc).show
+
+
+
+
+
